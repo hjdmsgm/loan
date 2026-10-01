@@ -157,7 +157,9 @@ tr.grace em { font-style: normal; font-size: 11px; color: var(--muted); border: 
 .sched[open] summary { margin-bottom: 14px; }
 
 /* 저장 */
-.conn { font-size: 13px; color: var(--muted); margin: -4px 0 12px; }
+.conn-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.conn-row .link-btn { flex: none; white-space: nowrap; }
+.conn { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
 .conn.warn { color: var(--danger); }
 .save-row { display: flex; gap: 8px; margin-bottom: 10px; }
 .save-row input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }

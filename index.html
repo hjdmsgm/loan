@@ -8,7 +8,7 @@
   <meta name="description" content="대출금액, 금리, 기간, 상환방식을 입력하면 월 납입액과 상환 스케줄을 바로 확인할 수 있어요.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F5132'/%3E%3Cpath d='M16 7l9 8h-3v9H10v-9H7z' fill='%23fff'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
   <header class="topbar">
@@ -93,12 +93,16 @@
       </div>
 
       <!-- 저장 -->
-      <div class="card save-card">
-        <div class="card-head">
+      <details class="card sched save-card" id="save-card" open>
+        <summary>
           <h2>저장 · 불러오기</h2>
+          <span class="legend-note"></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="conn-row">
+          <p class="conn" id="conn-status"></p>
           <button type="button" class="link-btn" id="btn-settings">GitHub 연결 설정</button>
         </div>
-        <p class="conn" id="conn-status"></p>
 
         <div class="save-row">
           <input id="title-input" type="text" maxlength="60" placeholder="제목 (예: 우리집 대출)" aria-label="저장할 제목">
@@ -116,7 +120,7 @@
           <div class="card-head"><h3>저장 목록 <small>(GitHub)</small></h3><button type="button" class="link-btn" id="btn-refresh">새로고침</button></div>
           <ul id="saved-list" class="saved-list"></ul>
         </div>
-      </div>
+      </details>
 
       <!-- 상환 스케줄 (접기/펼치기) -->
       <details class="card sched" id="schedule-card" open>
@@ -157,13 +161,13 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="js/calc.js"></script>
-  <script src="js/format.js"></script>
-  <script src="js/validate.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/github.js"></script>
-  <script src="js/chart.js"></script>
-  <script src="js/schedule.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/calc.js?v=4"></script>
+  <script src="js/format.js?v=4"></script>
+  <script src="js/validate.js?v=4"></script>
+  <script src="js/storage.js?v=4"></script>
+  <script src="js/github.js?v=4"></script>
+  <script src="js/chart.js?v=4"></script>
+  <script src="js/schedule.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>
