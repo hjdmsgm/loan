@@ -57,8 +57,8 @@ button, input { font: inherit; color: inherit; }
   display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px; align-items: start;
 }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
-.results { display: grid; gap: 20px; min-width: 0; }
-#result { display: grid; gap: 20px; min-width: 0; }
+.results { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; min-width: 0; }
+#result { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; min-width: 0; }
 #result[hidden] { display: none; }
 
 /* 입력 */
@@ -111,7 +111,7 @@ h3 small { color: var(--muted); font-weight: 400; }
 .dot.p { background: var(--chart-p); } .dot.i { background: var(--chart-i); }
 
 /* 차트 */
-.chart-wrap { --h: 260px; display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: var(--h) auto; column-gap: 8px; }
+.chart-wrap { --h: 260px; padding-right: 14px; display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: var(--h) auto; column-gap: 8px; }
 .y-axis { position: relative; font-size: 11.5px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 .y-axis span { white-space: nowrap; position: absolute; right: 0; transform: translateY(-50%); }
 .plot { position: relative; }
@@ -211,7 +211,12 @@ dialog .check input { accent-color: var(--primary); }
   .card { padding: 18px 16px; border-radius: 14px; }
   .stats { grid-template-columns: 1fr 1fr; }
   .chart-wrap { --h: 220px; grid-template-columns: 50px minmax(0, 1fr); column-gap: 6px; }
-  th, td { padding: 8px 8px; font-size: 12.5px; }
+  .sched { padding: 16px 10px; }
+  .sched summary { padding: 0 6px; }
+  th, td { padding: 7px 4px; font-size: 11.5px; letter-spacing: -.02em; }
+  th:first-child, td:first-child { padding-left: 6px; }
+  th:last-child, td:last-child { padding-right: 8px; }
+  tr.grace em { display: none; }
   .save-row { flex-direction: row; }
   dialog .grid2 { grid-template-columns: 1fr; }
   .saved-list li { flex-wrap: wrap; }
