@@ -1,0 +1,9 @@
+{
+  "name": "loan-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "대출 상환 계산기 (정적 사이트)",
+  "scripts": {
+    "test": "node --test tests/calc.test.js tests/storage.test.js"
+  }
+}

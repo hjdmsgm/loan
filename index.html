@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>LoanCalc · 대출 상환 계산기</title>
+  <meta name="description" content="대출금액, 금리, 기간, 상환방식을 입력하면 월 납입액과 상환 스케줄을 바로 확인할 수 있어요.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F5132'/%3E%3Cpath d='M16 7l9 8h-3v9H10v-9H7z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="#" aria-label="LoanCalc">
+        <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M16 7l9 8h-3v9H10v-9H7z" fill="var(--surface)"/></svg>
+        LoanCalc
+      </a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 입력 -->
+    <aside class="card input-card">
+      <p class="eyebrow">똑똑한 금융생활의 시작</p>
+      <h1>대출 상환 계산기</h1>
+      <p class="lead">조건을 입력하면 월 납입액과 상환 스케줄이 바로 계산돼요.</p>
+
+      <form id="loan-form" novalidate autocomplete="off">
+        <div class="field">
+          <label for="f-principal">대출 원금</label>
+          <div class="input-wrap"><input id="f-principal" type="text" inputmode="numeric" value="300,000,000" aria-describedby="h-principal e-principal"><span class="unit">원</span></div>
+          <p class="hint" id="h-principal"></p>
+          <p class="error" id="e-principal" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="f-rate">연 이자율</label>
+          <div class="input-wrap"><input id="f-rate" type="text" inputmode="decimal" value="4.2" aria-describedby="h-rate e-rate"><span class="unit">%</span></div>
+          <p class="hint" id="h-rate">0~30%, 소수점 셋째 자리까지</p>
+          <p class="error" id="e-rate" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="f-years">대출 기간</label>
+          <div class="input-wrap"><input id="f-years" type="text" inputmode="numeric" value="30" aria-describedby="h-years e-years"><span class="unit">년</span></div>
+          <p class="hint" id="h-years">1~50년, 정수만</p>
+          <p class="error" id="e-years" role="alert"></p>
+        </div>
+
+        <fieldset class="field">
+          <legend>상환 방식</legend>
+          <label class="radio"><input type="radio" name="method" value="annuity" checked><span><b>원리금균등</b> <small>매달 같은 금액</small></span></label>
+          <label class="radio"><input type="radio" name="method" value="equal-principal"><span><b>원금균등</b> <small>원금은 같고 이자는 줄어듦</small></span></label>
+        </fieldset>
+
+        <div class="field">
+          <label for="f-grace">거치 기간 <small>(선택)</small></label>
+          <div class="input-wrap"><input id="f-grace" type="text" inputmode="numeric" value="0" aria-describedby="h-grace e-grace"><span class="unit">개월</span></div>
+          <p class="hint" id="h-grace">대출 기간에 포함돼요. 거치 중에는 이자만 내요.</p>
+          <p class="error" id="e-grace" role="alert"></p>
+        </div>
+      </form>
+    </aside>
+
+    <!-- 결과 -->
+    <section class="results" aria-live="polite">
+      <div id="empty" class="card empty" hidden>
+        <p>왼쪽 입력값의 오류를 고치면 계산 결과가 여기에 표시돼요.</p>
+      </div>
+
+      <div id="result">
+        <div class="card hero">
+          <p class="hero-label" id="hero-label">월 납입액</p>
+          <p class="hero-amount" id="hero-amount">-</p>
+          <ul class="hero-notes" id="hero-notes"></ul>
+          <dl class="stats">
+            <div><dt>대출 원금</dt><dd id="st-principal"></dd></div>
+            <div><dt>총 이자</dt><dd id="st-interest"></dd></div>
+            <div><dt>총 상환액</dt><dd id="st-total"></dd></div>
+            <div><dt>상환 횟수</dt><dd id="st-count"></dd></div>
+          </dl>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>연도별 상환액</h2>
+            <p class="legend"><span><i class="dot p"></i>원금</span><span><i class="dot i"></i>이자</span></p>
+          </div>
+          <div id="chart"></div>
+        </div>
+      </div>
+
+      <!-- 저장 -->
+      <div class="card save-card">
+        <div class="card-head">
+          <h2>저장 · 불러오기</h2>
+          <button type="button" class="link-btn" id="btn-settings">GitHub 연결 설정</button>
+        </div>
+        <p class="conn" id="conn-status"></p>
+
+        <div class="save-row">
+          <input id="title-input" type="text" maxlength="60" placeholder="제목 (예: 우리집 대출)" aria-label="저장할 제목">
+          <button type="button" class="btn primary" id="btn-save">저장</button>
+        </div>
+
+        <div class="tool-row">
+          <button type="button" class="btn" id="btn-json">JSON 다운로드</button>
+          <button type="button" class="btn" id="btn-csv">스케줄 CSV 다운로드</button>
+          <button type="button" class="btn" id="btn-open">파일에서 불러오기</button>
+          <input type="file" id="file-input" accept=".json,application/json" hidden>
+        </div>
+
+        <div class="saved">
+          <div class="card-head"><h3>저장 목록 <small>(GitHub)</small></h3><button type="button" class="link-btn" id="btn-refresh">새로고침</button></div>
+          <ul id="saved-list" class="saved-list"></ul>
+        </div>
+      </div>
+
+      <!-- 상환 스케줄 (접기/펼치기) -->
+      <details class="card sched" id="schedule-card" open>
+        <summary>
+          <h2>상환 스케줄</h2>
+          <span class="legend-note" id="schedule-note"></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="table-scroll" id="schedule" tabindex="0" aria-label="회차별 상환 스케줄"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">계산 결과는 참고용이며 실제 납입액은 금융기관 및 상품에 따라 달라질 수 있어요.</footer>
+
+  <!-- 연결 설정 -->
+  <dialog id="settings" aria-labelledby="settings-title">
+    <form method="dialog" id="settings-form" autocomplete="off">
+      <h2 id="settings-title">GitHub 연결 설정</h2>
+      <p class="hint">결과를 저장할 <b>별도의 Private 저장소</b>를 연결하세요. fine-grained 토큰에는 해당 저장소의 <b>Contents: Read and write</b> 권한만 주세요.</p>
+      <div class="grid2">
+        <label>아이디<input id="s-owner" type="text" placeholder="octocat" required></label>
+        <label>저장소<input id="s-repo" type="text" placeholder="loan-data" required></label>
+        <label>브랜치<input id="s-branch" type="text" value="main"></label>
+        <label>폴더<input id="s-folder" type="text" value="results"></label>
+      </div>
+      <label>Fine-grained 토큰<input id="s-token" type="password" placeholder="github_pat_..." autocomplete="off"></label>
+      <label class="check"><input id="s-remember" type="checkbox"> 토큰 기억하기 <small>(끄면 이 탭을 닫을 때까지만 유지)</small></label>
+      <p class="msg" id="s-msg" role="status"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn danger" id="s-disconnect">연결 해제</button>
+        <span class="grow"></span>
+        <button type="button" class="btn" id="s-close">닫기</button>
+        <button type="button" class="btn primary" id="s-connect">연결</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/calc.js"></script>
+  <script src="js/format.js"></script>
+  <script src="js/validate.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/github.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/schedule.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
