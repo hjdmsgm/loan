@@ -63,8 +63,12 @@
         return '이 토큰에 권한이 없어요. fine-grained 토큰의 대상 저장소에 Repository permissions → Contents: "Read and write"가 설정되어 있는지 확인해 주세요.';
       case 404:
         if (ctx === 'list') return null; // 폴더가 아직 없음 → 빈 목록으로 처리
+        if (ctx === 'delete') return '삭제할 파일을 찾을 수 없어요. 이미 삭제되었을 수 있으니 목록을 새로고침해 주세요.';
         return '저장소, 브랜치 또는 파일을 찾을 수 없어요. 아이디·저장소·브랜치 철자를 확인하고, 토큰이 이 Private 저장소에 접근할 수 있도록 선택되어 있는지 확인해 주세요.';
+      case 409:
+        return '파일이 그 사이에 바뀌었어요. 목록을 새로고침한 뒤 다시 시도해 주세요.';
       case 422:
+        if (ctx === 'delete') return '파일이 그 사이에 바뀌었거나 이미 삭제되었어요. 목록을 새로고침한 뒤 다시 시도해 주세요.';
         if (ctx === 'save') return '저장 요청이 거부되었어요. 같은 이름의 파일이 이미 있거나 브랜치·폴더 이름이 올바르지 않을 수 있어요. 연결 설정을 확인해 주세요.';
         return '요청이 올바르지 않아요. 브랜치·폴더 이름을 확인해 주세요.';
       default:
@@ -159,7 +163,7 @@
     if (!Array.isArray(items)) return [];
     return items
       .filter(function (f) { return f.type === 'file' && /\.json$/i.test(f.name); })
-      .map(function (f) { var p = parseFileName(f.name); return { name: f.name, path: f.path, title: p.title, date: p.date, sortKey: p.sortKey }; })
+      .map(function (f) { var p = parseFileName(f.name); return { name: f.name, path: f.path, sha: f.sha, title: p.title, date: p.date, sortKey: p.sortKey }; })
       .sort(function (a, b) { return a.sortKey < b.sortKey ? 1 : a.sortKey > b.sortKey ? -1 : (a.name < b.name ? 1 : -1); });
   }
 
@@ -169,9 +173,17 @@
     return res.text();
   }
 
+  /** 파일 삭제 (커밋으로 기록되므로 저장소 히스토리에서 복구할 수 있다) */
+  async function deleteFile(cfg, item) {
+    await request(cfg, repoPath(cfg) + '/contents/' + encodePath(item.path), {
+      method: 'DELETE',
+      body: { message: 'Delete loan result: ' + item.title, sha: item.sha, branch: cfg.branch }
+    }, 'delete');
+  }
+
   root.LoanGitHub = {
     loadConfig: loadConfig, saveConfig: saveConfig, clearToken: clearToken, isConfigured: isConfigured,
-    cleanFolder: cleanFolder, verify: verify, saveFile: saveFile, listFiles: listFiles, loadFile: loadFile,
+    cleanFolder: cleanFolder, verify: verify, saveFile: saveFile, listFiles: listFiles, loadFile: loadFile, deleteFile: deleteFile,
     GitHubError: GitHubError
   };
 })(window);

@@ -162,7 +162,10 @@
       var d = document.createElement('span'); d.className = 'd'; d.textContent = it.date;
       var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = '불러오기';
       b.addEventListener('click', function () { loadFromGitHub(it, b); });
-      li.append(t, d, b);
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'btn danger'; x.textContent = '삭제';
+      x.setAttribute('aria-label', it.title + ' 삭제');
+      x.addEventListener('click', function () { deleteFromGitHub(it, x); });
+      li.append(t, d, b, x);
       ul.appendChild(li);
     });
   }
@@ -180,6 +183,19 @@
     try { applyLoaded(S.parseDocument(await GH.loadFile(cfg, item.path))); }
     catch (e) { toast(e.message, 6000); }
     btn.disabled = false;
+  }
+
+  async function deleteFromGitHub(item, btn) {
+    if (!confirm('"' + item.title + '" (' + item.date + ') 을(를) 삭제할까요?\n저장소에서 파일이 삭제되며, GitHub 커밋 기록에서만 복구할 수 있어요.')) return;
+    btn.disabled = true;
+    try {
+      await GH.deleteFile(cfg, item);
+      toast('삭제했어요: ' + item.title);
+      refreshList();
+    } catch (e) {
+      toast(e.message, 6000);
+      btn.disabled = false;
+    }
   }
 
   async function saveToGitHub() {
