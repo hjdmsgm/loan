@@ -5,19 +5,22 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var LIMITS = { minPrincipal: 1, maxPrincipal: 1000000000, maxRate: 30, rateDecimals: 3, minYears: 1, maxYears: 50 };
+  var LIMITS = { minPrincipal: 1, maxPrincipal: 1000000000, principalDecimals: 6, maxRate: 30, rateDecimals: 3, minYears: 1, maxYears: 50 };
 
   /** raw: {principal, rate, years, grace} 문자열 */
   function validate(raw, method) {
     var errors = {}, v = {};
 
+    // 대출 원금은 백만원 단위로 입력받는다 (예: 437 → 437,000,000원)
     var pStr = String(raw.principal || '').replace(/,/g, '').trim();
-    if (!pStr) errors.principal = '대출 원금을 입력해 주세요.';
-    else if (!/^\d+$/.test(pStr)) errors.principal = '숫자만 입력해 주세요. 예: 300,000,000';
+    if (!pStr) errors.principal = '대출 원금을 입력해 주세요. 백만원 단위예요. 예: 437';
+    else if (!/^(\d+\.?\d*|\.\d+)$/.test(pStr)) errors.principal = '숫자만 입력해 주세요. 백만원 단위예요. 예: 437 (= 4억 3,700만 원)';
+    else if ((pStr.split('.')[1] || '').length > LIMITS.principalDecimals)
+      errors.principal = '소수점은 여섯째 자리까지만 입력할 수 있어요. 예: 437.5';
     else {
-      var p = Number(pStr);
+      var p = Math.round(Number(pStr) * 1000000);
       if (p < LIMITS.minPrincipal || p > LIMITS.maxPrincipal)
-        errors.principal = '대출 원금은 1원 이상 10억 원 이하로 입력해 주세요.';
+        errors.principal = '대출 원금은 백만원 단위로 0보다 크고 1,000(10억 원) 이하로 입력해 주세요.';
       else v.principal = p;
     }
 

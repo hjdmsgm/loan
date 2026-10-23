@@ -21,18 +21,38 @@ test('파일명', () => {
     { title: '내 집', sortKey: '202610010905', date: '2026-10-01 09:05' });
 });
 
-test('검증', () => {
-  const ok = V.validate({ principal: '300,000,000', rate: '4.2', years: '30', grace: '12' }, 'annuity');
+test('한글 숫자', () => {
+  assert.equal(F.koreanWords(437000000), '사억 삼천칠백만 원');
+  assert.equal(F.koreanWords(300000000), '삼억 원');
+  assert.equal(F.koreanWords(1000000000), '십억 원');
+  assert.equal(F.koreanWords(150000000), '일억 오천만 원');
+  assert.equal(F.koreanWords(100000000), '일억 원');
+  assert.equal(F.koreanWords(10000), '일만 원');
+  assert.equal(F.koreanWords(437500000), '사억 삼천칠백오십만 원');
+  assert.equal(F.koreanWords(1234), '천이백삼십사 원');
+  assert.equal(F.koreanWords(1), '일 원');
+});
+
+test('검증 (원금은 백만원 단위 입력)', () => {
+  const v = (o) => V.validate({ principal: '437', rate: '4', years: '30', grace: '', ...o }, 'annuity');
+  const ok = v({ principal: '300', rate: '4.2', grace: '12' });
   assert.ok(ok.ok);
+  assert.equal(ok.values.principal, 300000000);
   assert.equal(ok.values.graceMonths, 12);
-  assert.ok(V.validate({ principal: '0', rate: '4', years: '30', grace: '' }, 'annuity').errors.principal);
-  assert.ok(V.validate({ principal: '1,000,000,001', rate: '4', years: '30', grace: '' }, 'annuity').errors.principal);
-  assert.ok(V.validate({ principal: '1', rate: '4.1234', years: '30', grace: '' }, 'annuity').errors.rate);
-  assert.ok(V.validate({ principal: '1', rate: '30.1', years: '30', grace: '' }, 'annuity').errors.rate);
-  assert.ok(V.validate({ principal: '1', rate: '4', years: '51', grace: '' }, 'annuity').errors.years);
-  assert.ok(V.validate({ principal: '1', rate: '4', years: '3.5', grace: '' }, 'annuity').errors.years);
-  assert.ok(V.validate({ principal: '1', rate: '4', years: '1', grace: '12' }, 'annuity').errors.grace);
-  assert.ok(V.validate({ principal: '1', rate: '4', years: '1', grace: '11' }, 'annuity').ok);
+  assert.equal(v({ principal: '437.5' }).values.principal, 437500000);
+  assert.equal(v({ principal: '1,000' }).values.principal, 1000000000);
+  assert.ok(v({ principal: '0' }).errors.principal);
+  assert.ok(v({ principal: '1000.1' }).errors.principal);
+  assert.ok(v({ principal: '437,000,000' }).errors.principal);
+  assert.ok(v({ principal: '' }).errors.principal);
+  assert.ok(v({ principal: 'abc' }).errors.principal);
+  assert.ok(v({ principal: '1.1234567' }).errors.principal);
+  assert.ok(v({ rate: '4.1234' }).errors.rate);
+  assert.ok(v({ rate: '30.1' }).errors.rate);
+  assert.ok(v({ years: '51' }).errors.years);
+  assert.ok(v({ years: '3.5' }).errors.years);
+  assert.ok(v({ years: '1', grace: '12' }).errors.grace);
+  assert.ok(v({ years: '1', grace: '11' }).ok);
 });
 
 test('저장 문서 왕복과 이전 파일 호환', () => {

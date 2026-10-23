@@ -23,6 +23,30 @@
     return parts.join(' ') + ' 원';
   }
 
+  /** 300000000 → "삼억 원", 437000000 → "사억 삼천칠백만 원" */
+  function koreanWords(n) {
+    n = Math.round(n);
+    if (!(n > 0)) return '';
+    var digit = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    var small = ['', '십', '백', '천'];
+    function group(v) { // 1~9999
+      var s = '';
+      for (var i = 3; i >= 0; i--) {
+        var d = Math.floor(v / Math.pow(10, i)) % 10;
+        if (!d) continue;
+        s += (i > 0 && d === 1 ? '' : digit[d]) + small[i]; // 일십/일백/일천은 십/백/천
+      }
+      return s;
+    }
+    var big = ['', '만', '억', '조'];
+    var parts = [];
+    for (var u = 0; n > 0; u++, n = Math.floor(n / 10000)) {
+      var g = n % 10000;
+      if (g) parts.unshift((g === 1 && u > 0 ? '일' : group(g)) + big[u]);
+    }
+    return parts.join(' ') + ' 원';
+  }
+
   /** 차트 축 라벨용 축약: 1.5억, 500만 */
   function compact(n) {
     if (n >= 100000000) return trim(n / 100000000) + '억';
@@ -72,7 +96,7 @@
   }
 
   return {
-    comma: comma, won: won, koreanUnit: koreanUnit, compact: compact,
+    comma: comma, won: won, koreanUnit: koreanUnit, koreanWords: koreanWords, compact: compact,
     sanitizeTitle: sanitizeTitle, fileBase: fileBase, fileName: fileName, parseFileName: parseFileName
   };
 });
