@@ -300,6 +300,13 @@
   $('s-disconnect').addEventListener('click', disconnect);
   $('s-close').addEventListener('click', function () { dlg.close(); });
 
+  /* ---------- 광고 배너: 닫으면 이 탭에서는 다시 안 보임 ---------- */
+  try { if (sessionStorage.getItem('loan.promo.closed')) $('promo').hidden = true; } catch (e) { /* ignore */ }
+  $('promo-close').addEventListener('click', function () {
+    $('promo').hidden = true;
+    try { sessionStorage.setItem('loan.promo.closed', '1'); } catch (e) { /* ignore */ }
+  });
+
   /* ---------- 시작 ---------- */
   renderConn();
   refreshList();
