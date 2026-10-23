@@ -33,26 +33,38 @@ test('한글 숫자', () => {
   assert.equal(F.koreanWords(1), '일 원');
 });
 
-test('검증 (원금은 백만원 단위 입력)', () => {
-  const v = (o) => V.validate({ principal: '437', rate: '4', years: '30', grace: '', ...o }, 'annuity');
-  const ok = v({ principal: '300', rate: '4.2', grace: '12' });
+test('검증 (원금은 천원 단위 입력)', () => {
+  const v = (o) => V.validate({ principal: '437,000', rate: '4', years: '30', grace: '', ...o }, 'annuity');
+  const ok = v({ principal: '300,000', rate: '4.2', grace: '12' });
   assert.ok(ok.ok);
   assert.equal(ok.values.principal, 300000000);
   assert.equal(ok.values.graceMonths, 12);
-  assert.equal(v({ principal: '437.5' }).values.principal, 437500000);
-  assert.equal(v({ principal: '1,000' }).values.principal, 1000000000);
+  assert.equal(v({ principal: '437000' }).values.principal, 437000000);
+  assert.equal(v({ principal: '437500.5' }).values.principal, 437500500);
+  assert.equal(v({ principal: '100,000,000' }).values.principal, 100000000000); // 1,000억 원
+  assert.equal(v({ principal: '1' }).values.principal, 1000);
   assert.ok(v({ principal: '0' }).errors.principal);
-  assert.ok(v({ principal: '1000.1' }).errors.principal);
-  assert.ok(v({ principal: '437,000,000' }).errors.principal);
+  assert.ok(v({ principal: '100,000,001' }).errors.principal);
   assert.ok(v({ principal: '' }).errors.principal);
   assert.ok(v({ principal: 'abc' }).errors.principal);
-  assert.ok(v({ principal: '1.1234567' }).errors.principal);
+  assert.ok(v({ principal: '1.1234' }).errors.principal);
   assert.ok(v({ rate: '4.1234' }).errors.rate);
   assert.ok(v({ rate: '30.1' }).errors.rate);
   assert.ok(v({ years: '51' }).errors.years);
   assert.ok(v({ years: '3.5' }).errors.years);
   assert.ok(v({ years: '1', grace: '12' }).errors.grace);
   assert.ok(v({ years: '1', grace: '11' }).ok);
+});
+
+test('최대 대출금(1,000억 원)에서도 계산이 정확하다', () => {
+  for (const method of ['annuity', 'equal-principal']) {
+    const { schedule, summary } = C.calculate({ principal: 100000000000, annualRate: 30, termYears: 50, graceMonths: 12, method });
+    assert.equal(schedule[schedule.length - 1].balance, 0);
+    assert.equal(schedule.reduce((s, r) => s + r.principal, 0), 100000000000);
+    assert.ok(Number.isSafeInteger(summary.totalPayment));
+  }
+  assert.equal(F.koreanWords(100000000000), '천억 원');
+  assert.equal(F.compact(1500000000000), '1.5조');
 });
 
 test('저장 문서 왕복과 이전 파일 호환', () => {

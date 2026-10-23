@@ -8,7 +8,7 @@
   <meta name="description" content="대출금액, 금리, 기간, 상환방식을 입력하면 월 납입액과 상환 스케줄을 바로 확인할 수 있어요.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F5132'/%3E%3Cpath d='M16 7l9 8h-3v9H10v-9H7z' fill='%23fff'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
   <header class="topbar">
@@ -30,9 +30,8 @@
       <form id="loan-form" novalidate autocomplete="off">
         <div class="field">
           <label for="f-principal">대출 원금</label>
-          <div class="input-wrap wide-unit"><input id="f-principal" type="text" inputmode="decimal" value="437" aria-describedby="h-principal h-principal-won e-principal"><span class="unit">백만원</span></div>
-          <p class="hint big" id="h-principal"></p>
-          <p class="hint" id="h-principal-won"></p>
+          <div class="input-wrap wide-unit"><input id="f-principal" type="text" inputmode="decimal" value="437,000" aria-describedby="h-principal-line e-principal"><span class="unit">천원</span></div>
+          <p class="hint big" id="h-principal-line"><span id="h-principal"></span> <span class="won" id="h-principal-won"></span></p>
           <p class="error" id="e-principal" role="alert"></p>
         </div>
 
@@ -171,13 +170,13 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="js/calc.js?v=10"></script>
-  <script src="js/format.js?v=10"></script>
-  <script src="js/validate.js?v=10"></script>
-  <script src="js/storage.js?v=10"></script>
-  <script src="js/github.js?v=10"></script>
-  <script src="js/chart.js?v=10"></script>
-  <script src="js/schedule.js?v=10"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/calc.js?v=13"></script>
+  <script src="js/format.js?v=13"></script>
+  <script src="js/validate.js?v=13"></script>
+  <script src="js/storage.js?v=13"></script>
+  <script src="js/github.js?v=13"></script>
+  <script src="js/chart.js?v=13"></script>
+  <script src="js/schedule.js?v=13"></script>
+  <script src="js/app.js?v=13"></script>
 </body>
 </html>

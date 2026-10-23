@@ -49,6 +49,7 @@
 
   /** 차트 축 라벨용 축약: 1.5억, 500만 */
   function compact(n) {
+    if (n >= 1000000000000) return trim(n / 1000000000000) + '조';
     if (n >= 100000000) return trim(n / 100000000) + '억';
     if (n >= 10000) return trim(n / 10000) + '만';
     return comma(n);

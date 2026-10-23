@@ -10,15 +10,28 @@
   var current = null; // { input, result }
 
   /* ---------- 입력 정리 ---------- */
-  /** 백만원 단위 입력: 숫자와 소수점만 남긴다 (콤마는 붙여넣기 대비 제거) */
-  function cleanPrincipalInput(el) {
-    var v = el.value.replace(/[^\d.\-]/g, '').slice(0, 12);
-    if (v !== el.value) el.value = v;
+  function commaInt(s) { return s.replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  /** 천원 단위 입력: 숫자·소수점만 남기고 정수부에 콤마를 자동으로 붙인다 (커서 위치 유지) */
+  function formatPrincipalInput(el) {
+    var sig = function (s) { return s.replace(/[^\d.]/g, ''); };
+    var before = sig(el.value.slice(0, el.selectionStart)).length;
+    var raw = sig(el.value).slice(0, 16);
+    var dot = raw.indexOf('.');
+    var intPart = (dot < 0 ? raw : raw.slice(0, dot)).replace(/^0+(?=\d)/, '');
+    var rest = dot < 0 ? '' : '.' + raw.slice(dot + 1).replace(/\./g, '');
+    var formatted = commaInt(intPart) + rest;
+    el.value = formatted;
+    var pos = 0, seen = 0;
+    while (pos < formatted.length && seen < before) { if (formatted[pos] !== ',') seen++; pos++; }
+    try { el.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
   }
 
-  /** 원 단위 금액 → 백만원 단위 입력 문자열 (437000000 → "437", 437500000 → "437.5") */
-  function toMillions(won) {
-    return String(parseFloat((won / 1000000).toFixed(6)));
+  /** 원 단위 금액 → 천원 단위 입력 문자열 (437000000 → "437,000") */
+  function toInputUnits(won) {
+    var s = String(parseFloat((won / V.PRINCIPAL_UNIT).toFixed(V.LIMITS.principalDecimals)));
+    var parts = s.split('.');
+    return commaInt(parts[0]) + (parts[1] ? '.' + parts[1] : '');
   }
 
   function method() { return document.querySelector('input[name="method"]:checked').value; }
@@ -39,9 +52,10 @@
     });
 
     // 원금 표기: 한글 숫자 + 실제 금액(원). 입력이 숫자로 읽힐 때만 보여준다
-    var pNum = /^(\d+\.?\d*|\.\d+)$/.test(raw.principal.trim()) ? Math.round(Number(raw.principal) * 1000000) : 0;
-    $('h-principal').textContent = pNum > 0 && pNum <= V.LIMITS.maxPrincipal ? F.koreanWords(pNum) : '';
-    $('h-principal-won').textContent = pNum > 0 && pNum <= V.LIMITS.maxPrincipal ? F.won(pNum) : '';
+    var pr = V.parsePrincipal(raw.principal);
+    $('h-principal').textContent = pr.error ? '' : F.koreanWords(pr.won);
+    $('h-principal-won').textContent = pr.error ? '' : '(' + F.won(pr.won) + ')';
+    $('h-principal-line').hidden = !!pr.error;
 
     if (!check.ok) {
       current = null;
@@ -122,7 +136,7 @@
   /* ---------- 불러오기 ---------- */
   function applyLoaded(parsed) {
     var i = parsed.input;
-    fields.principal.value = toMillions(i.principal);
+    fields.principal.value = toInputUnits(i.principal);
     fields.rate.value = String(i.annualRate);
     fields.years.value = String(i.termYears);
     fields.grace.value = String(i.graceMonths || 0);
@@ -252,7 +266,7 @@
   }
 
   /* ---------- 이벤트 ---------- */
-  fields.principal.addEventListener('input', function () { cleanPrincipalInput(fields.principal); update(); });
+  fields.principal.addEventListener('input', function () { formatPrincipalInput(fields.principal); update(); });
   fields.rate.addEventListener('input', function () {
     var v = fields.rate.value.replace(/[^\d.\-]/g, '');
     if (v !== fields.rate.value) fields.rate.value = v;

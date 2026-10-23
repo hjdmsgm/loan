@@ -74,7 +74,7 @@ label small, legend small { color: var(--muted); font-weight: 400; }
   width: 100%; height: 46px; padding: 0 44px 0 14px; border: 1px solid var(--border); border-radius: 10px;
   background: var(--surface); font-size: 16px; font-variant-numeric: tabular-nums;
 }
-.input-wrap.wide-unit input { padding-right: 68px; }
+.input-wrap.wide-unit input { padding-right: 56px; }
 .input-wrap .unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
 input:focus-visible, button:focus-visible, .col:focus-visible, .table-scroll:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
@@ -82,6 +82,8 @@ input:focus-visible, button:focus-visible, .col:focus-visible, .table-scroll:foc
 .field.invalid .input-wrap input { border-color: var(--danger); background: var(--danger-bg); }
 .hint { color: var(--muted); font-size: 12.5px; margin-top: 5px; min-height: 0; }
 .hint:empty { display: none; }
+.hint[hidden] { display: none; }
+.hint .won { color: var(--muted); font-weight: 400; font-size: 12.5px; white-space: nowrap; }
 .hint.big { color: var(--primary); font-weight: 600; font-size: 13.5px; }
 .error { color: var(--danger); font-size: 12.5px; margin-top: 5px; font-weight: 500; }
 .error:empty { display: none; }
@@ -223,7 +225,9 @@ dialog .check input { accent-color: var(--primary); }
   .layout { padding: 12px 16px 8px; gap: 14px; }
   .results, #result { gap: 14px; }
   .card { padding: 18px 16px; border-radius: 14px; }
-  .stats { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: 1fr; }
+  .stats > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; }
+  .stats dd { margin: 0; white-space: nowrap; }
   .chart-wrap { --h: 220px; grid-template-columns: 50px minmax(0, 1fr); column-gap: 6px; }
   .sched { padding: 16px 10px; }
   .sched summary { padding: 0 6px; }

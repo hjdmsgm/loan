@@ -5,24 +5,29 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var LIMITS = { minPrincipal: 1, maxPrincipal: 1000000000, principalDecimals: 6, maxRate: 30, rateDecimals: 3, minYears: 1, maxYears: 50 };
+  var LIMITS = { minPrincipal: 1, maxPrincipal: 100000000000, principalDecimals: 3, maxRate: 30, rateDecimals: 3, minYears: 1, maxYears: 50 };
+  var PRINCIPAL_UNIT = 1000; // 대출 원금은 천원 단위로 입력한다 (예: 437,000 → 437,000,000원)
+
+  /** 천원 단위 입력 문자열 → {won} 또는 {error} */
+  function parsePrincipal(input) {
+    var s = String(input == null ? '' : input).replace(/,/g, '').trim();
+    if (!s) return { error: '대출 원금을 입력해 주세요. 천원 단위예요. 예: 437,000 (= 4억 3,700만 원)' };
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return { error: '숫자만 입력해 주세요. 천원 단위예요. 예: 437,000 (= 4억 3,700만 원)' };
+    if ((s.split('.')[1] || '').length > LIMITS.principalDecimals)
+      return { error: '소수점은 셋째 자리까지만 입력할 수 있어요. 예: 437000.5' };
+    var won = Math.round(Number(s) * PRINCIPAL_UNIT);
+    if (won < LIMITS.minPrincipal || won > LIMITS.maxPrincipal)
+      return { error: '대출 원금은 천원 단위로 0보다 크고 100,000,000(1,000억 원) 이하로 입력해 주세요.' };
+    return { won: won };
+  }
 
   /** raw: {principal, rate, years, grace} 문자열 */
   function validate(raw, method) {
     var errors = {}, v = {};
 
-    // 대출 원금은 백만원 단위로 입력받는다 (예: 437 → 437,000,000원)
-    var pStr = String(raw.principal || '').replace(/,/g, '').trim();
-    if (!pStr) errors.principal = '대출 원금을 입력해 주세요. 백만원 단위예요. 예: 437';
-    else if (!/^(\d+\.?\d*|\.\d+)$/.test(pStr)) errors.principal = '숫자만 입력해 주세요. 백만원 단위예요. 예: 437 (= 4억 3,700만 원)';
-    else if ((pStr.split('.')[1] || '').length > LIMITS.principalDecimals)
-      errors.principal = '소수점은 여섯째 자리까지만 입력할 수 있어요. 예: 437.5';
-    else {
-      var p = Math.round(Number(pStr) * 1000000);
-      if (p < LIMITS.minPrincipal || p > LIMITS.maxPrincipal)
-        errors.principal = '대출 원금은 백만원 단위로 0보다 크고 1,000(10억 원) 이하로 입력해 주세요.';
-      else v.principal = p;
-    }
+    var pr = parsePrincipal(raw.principal);
+    if (pr.error) errors.principal = pr.error;
+    else v.principal = pr.won;
 
     var rStr = String(raw.rate || '').trim();
     if (!rStr) errors.rate = '연 이자율을 입력해 주세요. 이자가 없으면 0을 입력하세요.';
@@ -52,5 +57,5 @@
     return { ok: ok, errors: errors, values: ok ? v : null };
   }
 
-  return { LIMITS: LIMITS, validate: validate };
+  return { LIMITS: LIMITS, PRINCIPAL_UNIT: PRINCIPAL_UNIT, parsePrincipal: parsePrincipal, validate: validate };
 });
