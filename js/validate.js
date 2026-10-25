@@ -5,19 +5,19 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var LIMITS = { minPrincipal: 1, maxPrincipal: 100000000000, principalDecimals: 3, maxRate: 30, rateDecimals: 3, minYears: 1, maxYears: 50 };
-  var PRINCIPAL_UNIT = 1000; // 대출 원금은 천원 단위로 입력한다 (예: 437,000 → 437,000,000원)
+  var LIMITS = { minPrincipal: 1, maxPrincipal: 100000000000, principalDecimals: 6, maxRate: 30, rateDecimals: 3, minYears: 1, maxYears: 50 };
+  var PRINCIPAL_UNIT = 1000000; // 대출 원금은 백만원 단위로 입력한다 (예: 437 → 437,000,000원)
 
-  /** 천원 단위 입력 문자열 → {won} 또는 {error} */
+  /** 백만원 단위 입력 문자열 → {won} 또는 {error} */
   function parsePrincipal(input) {
     var s = String(input == null ? '' : input).replace(/,/g, '').trim();
-    if (!s) return { error: '대출 원금을 입력해 주세요. 천원 단위예요. 예: 437,000 (= 4억 3,700만 원)' };
-    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return { error: '숫자만 입력해 주세요. 천원 단위예요. 예: 437,000 (= 4억 3,700만 원)' };
+    if (!s) return { error: '대출 원금을 입력해 주세요. 백만원 단위예요. 예: 437 (= 4억 3,700만 원)' };
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return { error: '숫자만 입력해 주세요. 백만원 단위예요. 예: 437 (= 4억 3,700만 원)' };
     if ((s.split('.')[1] || '').length > LIMITS.principalDecimals)
-      return { error: '소수점은 셋째 자리까지만 입력할 수 있어요. 예: 437000.5' };
+      return { error: '소수점은 여섯째 자리까지만 입력할 수 있어요. 예: 437.5' };
     var won = Math.round(Number(s) * PRINCIPAL_UNIT);
     if (won < LIMITS.minPrincipal || won > LIMITS.maxPrincipal)
-      return { error: '대출 원금은 천원 단위로 0보다 크고 100,000,000(1,000억 원) 이하로 입력해 주세요.' };
+      return { error: '대출 원금은 백만원 단위로 0보다 크고 100,000(1,000억 원) 이하로 입력해 주세요.' };
     return { won: won };
   }
 

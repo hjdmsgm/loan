@@ -12,7 +12,7 @@
   /* ---------- 입력 정리 ---------- */
   function commaInt(s) { return s.replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
-  /** 천원 단위 입력: 숫자·소수점만 남기고 정수부에 콤마를 자동으로 붙인다 (커서 위치 유지) */
+  /** 백만원 단위 입력: 숫자·소수점만 남기고 정수부에 콤마를 자동으로 붙인다 (커서 위치 유지) */
   function formatPrincipalInput(el) {
     var sig = function (s) { return s.replace(/[^\d.]/g, ''); };
     var before = sig(el.value.slice(0, el.selectionStart)).length;
@@ -27,7 +27,7 @@
     try { el.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
   }
 
-  /** 원 단위 금액 → 천원 단위 입력 문자열 (437000000 → "437,000") */
+  /** 원 단위 금액 → 백만원 단위 입력 문자열 (437000000 → "437", 437500000 → "437.5") */
   function toInputUnits(won) {
     var s = String(parseFloat((won / V.PRINCIPAL_UNIT).toFixed(V.LIMITS.principalDecimals)));
     var parts = s.split('.');
