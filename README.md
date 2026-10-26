@@ -15,6 +15,11 @@ npm test
 ## GitHub Pages 배포
 저장소 Settings → Pages → Branch: `main` / root 로 지정합니다.
 
+## 페이지
+- `index.html` — 대출 상환 계산기 (대출금 → 월 납입액)
+- `reverse.html` — 상환금으로 역산 (월 상환금 → 받을 수 있는 최대 대출금). 결과의 "이 조건으로 대출 계산기에서 열기"로 계산기에 값을 넘길 수 있습니다.
+  - 원리금균등은 월 납입액, 원금균등은 첫 달 납입액이 입력한 상환금 이하가 되는 최대 대출금을 이분 탐색으로 구합니다 (정방향 계산과 항상 일치).
+
 ## 결과 저장용 GitHub 연결
 1. **별도의 Private 저장소**를 만듭니다. (예: `loan-data`, 최소 1개 커밋 필요 — README 추가 등)
 2. GitHub → Settings → Developer settings → Fine-grained tokens에서 토큰을 발급합니다.
@@ -27,9 +32,11 @@ npm test
 ## 구조
 | 파일 | 역할 |
 |---|---|
-| `js/calc.js` | 상환 계산 (DOM 무관, Node 겸용) |
+| `js/calc.js` | 상환 계산·역산 (DOM 무관, Node 겸용) |
 | `js/validate.js` | 입력 검증·오류 문구 |
-| `js/format.js` | 콤마, 한글 단위, 파일명 |
+| `js/format.js` | 콤마, 한글 숫자, 파일명 |
+| `js/inputs.js` | 금액 입력창 콤마 자동 |
+| `js/reverse.js` | 역산 페이지 화면 연결 |
 | `js/storage.js` | JSON 생성/호환 파싱, CSV |
 | `js/github.js` | Contents API, 연결 설정 |
 | `js/chart.js`, `js/schedule.js` | 차트, 스케줄표 |

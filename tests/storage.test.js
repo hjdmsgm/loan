@@ -94,3 +94,21 @@ test('CSV: BOM과 거치 구분', () => {
   assert.ok(csv.includes('1,거치,10,0,10,100'));
   assert.ok(csv.includes('2,,60,50,10,50'));
 });
+
+test('역산 입력 검증 (월 상환금은 만원 단위)', () => {
+  const v = (o) => V.validateReverse({ payment: '190', rate: '4.28', years: '40', grace: '0', ...o }, 'annuity');
+  const ok = v({});
+  assert.ok(ok.ok);
+  assert.deepEqual(ok.values, { targetPayment: 1900000, annualRate: 4.28, termYears: 40, graceMonths: 0, method: 'annuity' });
+  assert.equal(v({ payment: '190.3221' }).values.targetPayment, 1903221);
+  assert.equal(v({ payment: '1,000' }).values.targetPayment, 10000000);
+  assert.ok(v({ payment: '' }).errors.payment);
+  assert.ok(v({ payment: '0' }).errors.payment);
+  assert.ok(v({ payment: 'abc' }).errors.payment);
+  assert.ok(v({ payment: '190.12345' }).errors.payment);
+  assert.ok(v({ payment: '10,000,001' }).errors.payment);
+  assert.ok(v({ rate: '31' }).errors.rate);
+  assert.ok(v({ years: '3.5' }).errors.years);
+  assert.ok(v({ years: '1', grace: '12' }).errors.grace);
+  assert.ok(!('principal' in v({}).errors));
+});

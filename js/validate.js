@@ -21,6 +21,42 @@
     return { won: won };
   }
 
+  var PAYMENT_UNIT = 10000; // 역산 페이지의 월 상환금은 만원 단위로 입력한다 (예: 190 → 1,900,000원)
+  LIMITS.maxPayment = 100000000000;
+  LIMITS.paymentDecimals = 4;
+
+  /** 만원 단위 입력 문자열 → {won} 또는 {error} */
+  function parsePayment(input) {
+    var s = String(input == null ? '' : input).replace(/,/g, '').trim();
+    var eg = '예: 190 (= 190만 원)';
+    if (!s) return { error: '월 상환금을 입력해 주세요. 만원 단위예요. ' + eg };
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return { error: '숫자만 입력해 주세요. 만원 단위예요. ' + eg };
+    if ((s.split('.')[1] || '').length > LIMITS.paymentDecimals)
+      return { error: '소수점은 넷째 자리까지만 입력할 수 있어요. 예: 190.3221' };
+    var won = Math.round(Number(s) * PAYMENT_UNIT);
+    if (won < 1 || won > LIMITS.maxPayment)
+      return { error: '월 상환금은 만원 단위로 0보다 크고 10,000,000(1,000억 원) 이하로 입력해 주세요.' };
+    return { won: won };
+  }
+
+  /** 역산 입력 검증. raw: {payment, rate, years, grace} 문자열 */
+  function validateReverse(raw, method) {
+    // 이자율·기간·거치는 정방향과 같은 규칙을 쓰고, 원금 칸만 월 상환금으로 바꾼다
+    var base = validate({ principal: '1', rate: raw.rate, years: raw.years, grace: raw.grace }, method);
+    var errors = base.errors;
+    var pay = parsePayment(raw.payment);
+    if (pay.error) errors.payment = pay.error;
+    var ok = Object.keys(errors).length === 0;
+    return {
+      ok: ok,
+      errors: errors,
+      values: ok ? {
+        targetPayment: pay.won, annualRate: base.values.annualRate, termYears: base.values.termYears,
+        graceMonths: base.values.graceMonths, method: method
+      } : null
+    };
+  }
+
   /** raw: {principal, rate, years, grace} 문자열 */
   function validate(raw, method) {
     var errors = {}, v = {};
@@ -57,5 +93,8 @@
     return { ok: ok, errors: errors, values: ok ? v : null };
   }
 
-  return { LIMITS: LIMITS, PRINCIPAL_UNIT: PRINCIPAL_UNIT, parsePrincipal: parsePrincipal, validate: validate };
+  return {
+    LIMITS: LIMITS, PRINCIPAL_UNIT: PRINCIPAL_UNIT, PAYMENT_UNIT: PAYMENT_UNIT,
+    parsePrincipal: parsePrincipal, parsePayment: parsePayment, validate: validate, validateReverse: validateReverse
+  };
 });

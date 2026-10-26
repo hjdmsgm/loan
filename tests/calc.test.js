@@ -63,3 +63,44 @@ test('연도별 집계', () => {
   assert.equal(years.reduce((s, y) => s + y.interest, 0), summary.totalInterest);
   assert.equal(years.reduce((s, y) => s + y.principal, 0), base.principal);
 });
+
+const { solvePrincipal, basisPayment } = require('../js/calc.js');
+const MAX = 100000000000;
+
+test('역산: 정방향 월 납입액(1,467,052원)으로 되돌리면 3억 이상, 정방향과 일치', () => {
+  const s = solvePrincipal({ targetPayment: 1467052, annualRate: 4.2, termYears: 30, method: METHODS.ANNUITY, graceMonths: 0 }, MAX);
+  assert.ok(!s.capped);
+  assert.ok(s.principal >= 300000000 && s.principal < 300001000);
+  assert.equal(s.result.summary.monthlyPayment, 1467052);
+});
+
+test('역산: 최대성 — 해당 원금은 기준 이하, 원금 +1원이면 초과', () => {
+  const cases = [
+    { targetPayment: 1903221, annualRate: 4.28, termYears: 40, method: METHODS.ANNUITY, graceMonths: 0 },
+    { targetPayment: 2500000, annualRate: 4.5, termYears: 30, method: METHODS.ANNUITY, graceMonths: 12 },
+    { targetPayment: 1883333, annualRate: 4.2, termYears: 30, method: METHODS.EQUAL_PRINCIPAL, graceMonths: 0 },
+    { targetPayment: 2000000, annualRate: 0, termYears: 10, method: METHODS.EQUAL_PRINCIPAL, graceMonths: 24 },
+    { targetPayment: 500000, annualRate: 30, termYears: 50, method: METHODS.ANNUITY, graceMonths: 599 },
+    { targetPayment: 777777, annualRate: 3.333, termYears: 7, method: METHODS.EQUAL_PRINCIPAL, graceMonths: 5 }
+  ];
+  for (const c of cases) {
+    const s = solvePrincipal(c, MAX);
+    assert.ok(!s.capped && s.principal > 0);
+    const at = (p) => basisPayment(calculate({ principal: p, annualRate: c.annualRate, termYears: c.termYears, method: c.method, graceMonths: c.graceMonths }).summary, c.method);
+    assert.ok(at(s.principal) <= c.targetPayment, 'at P');
+    assert.ok(at(s.principal + 1) > c.targetPayment, 'at P+1');
+    assert.equal(s.result.schedule[s.result.schedule.length - 1].balance, 0);
+  }
+});
+
+test('역산: 상환금이 아주 크면 상한에서 멈추고 capped', () => {
+  const s = solvePrincipal({ targetPayment: 99000000000, annualRate: 4, termYears: 30, method: METHODS.ANNUITY, graceMonths: 0 }, MAX);
+  assert.ok(s.capped);
+  assert.equal(s.principal, MAX);
+});
+
+test('역산: 원금균등은 첫 달(거치 후) 납입액 기준', () => {
+  const s = solvePrincipal({ targetPayment: 1883333, annualRate: 4.2, termYears: 30, method: METHODS.EQUAL_PRINCIPAL, graceMonths: 0 }, MAX);
+  assert.ok(s.principal >= 300000000);
+  assert.equal(s.result.summary.firstPayment <= 1883333, true);
+});

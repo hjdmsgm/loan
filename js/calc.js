@@ -93,5 +93,37 @@
     return years;
   }
 
-  return { METHODS: METHODS, calculate: calculate, aggregateByYear: aggregateByYear };
+  /** 기준 납입액: 원리금균등은 (거치 후) 월 납입액, 원금균등은 (거치 후) 첫 달 납입액 */
+  function basisPayment(summary, method) {
+    return method === METHODS.EQUAL_PRINCIPAL ? summary.firstPayment : summary.monthlyPayment;
+  }
+
+  /**
+   * 상환금으로 대출금 역산: 기준 납입액이 targetPayment 이하가 되는 최대 대출금(원)을 찾는다.
+   * calculate()로 직접 검증하는 이분 탐색이라 정방향 계산 결과와 항상 일치한다.
+   * @param {{targetPayment:number, annualRate:number, termYears:number, method:string, graceMonths?:number}} input
+   * @param {number} maxPrincipal 탐색 상한(원)
+   * @returns {{principal:number, capped:boolean, result:Object}}
+   */
+  function solvePrincipal(input, maxPrincipal) {
+    var base = {
+      annualRate: input.annualRate, termYears: input.termYears,
+      method: input.method, graceMonths: input.graceMonths || 0
+    };
+    function run(p) { return calculate(Object.assign({ principal: p }, base)); }
+    function pay(r) { return basisPayment(r.summary, input.method); }
+
+    var top = run(maxPrincipal);
+    if (pay(top) <= input.targetPayment) return { principal: maxPrincipal, capped: true, result: top };
+
+    var lo = 1, hi = maxPrincipal; // 불변식: pay(lo) <= target < pay(hi)
+    if (pay(run(lo)) > input.targetPayment) return { principal: 0, capped: false, result: null };
+    while (hi - lo > 1) {
+      var mid = Math.floor((lo + hi) / 2);
+      if (pay(run(mid)) <= input.targetPayment) lo = mid; else hi = mid;
+    }
+    return { principal: lo, capped: false, result: run(lo) };
+  }
+
+  return { METHODS: METHODS, calculate: calculate, aggregateByYear: aggregateByYear, solvePrincipal: solvePrincipal, basisPayment: basisPayment };
 });

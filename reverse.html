@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>상환금으로 대출금 역산 · LoanCalc</title>
+  <meta name="description" content="매달 낼 수 있는 상환금과 금리, 기간을 입력하면 받을 수 있는 최대 대출금을 계산해 드려요.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F5132'/%3E%3Cpath d='M16 7l9 8h-3v9H10v-9H7z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="css/style.css?v=16">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="index.html" aria-label="LoanCalc">
+        <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M16 7l9 8h-3v9H10v-9H7z" fill="var(--surface)"/></svg>
+        LoanCalc
+      </a>
+      <nav class="nav" aria-label="주요 메뉴">
+        <a href="index.html">대출 계산기</a>
+        <a href="reverse.html" aria-current="page">상환금으로 역산</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 입력 -->
+    <aside class="card input-card">
+      <p class="eyebrow">거꾸로 계산하기</p>
+      <h1>상환금으로 대출금 역산</h1>
+      <p class="lead">매달 낼 수 있는 금액을 입력하면 받을 수 있는 최대 대출금을 알려드려요.</p>
+
+      <form id="loan-form" novalidate autocomplete="off">
+        <div class="field">
+          <label for="f-payment">월 상환금</label>
+          <div class="input-wrap wide-unit"><input id="f-payment" type="text" inputmode="decimal" value="190" aria-describedby="h-payment-line e-payment"><span class="unit">만원</span></div>
+          <p class="hint big" id="h-payment-line"><span id="h-payment"></span> <span class="won" id="h-payment-won"></span></p>
+          <p class="error" id="e-payment" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="f-rate">연 이자율</label>
+          <div class="input-wrap"><input id="f-rate" type="text" inputmode="decimal" value="4.28" aria-describedby="h-rate e-rate"><span class="unit">%</span></div>
+          <p class="hint" id="h-rate">0~30%, 소수점 셋째 자리까지</p>
+          <p class="error" id="e-rate" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="f-years">대출 기간</label>
+          <div class="input-wrap"><input id="f-years" type="text" inputmode="numeric" value="40" aria-describedby="h-years e-years"><span class="unit">년</span></div>
+          <p class="hint" id="h-years">1~50년, 정수만</p>
+          <p class="error" id="e-years" role="alert"></p>
+        </div>
+
+        <fieldset class="field">
+          <legend>상환 방식</legend>
+          <label class="radio"><input type="radio" name="method" value="annuity" checked><span><b>원리금균등</b> <small>월 납입액이 상환금 이하가 되도록 계산</small></span></label>
+          <label class="radio"><input type="radio" name="method" value="equal-principal"><span><b>원금균등</b> <small>첫 달 납입액이 상환금 이하가 되도록 계산</small></span></label>
+        </fieldset>
+
+        <div class="field">
+          <label for="f-grace">거치 기간 <small>(선택)</small></label>
+          <div class="input-wrap"><input id="f-grace" type="text" inputmode="numeric" value="0" aria-describedby="h-grace e-grace"><span class="unit">개월</span></div>
+          <p class="hint" id="h-grace">거치가 있으면 거치가 끝난 뒤의 납입액을 상환금과 비교해요.</p>
+          <p class="error" id="e-grace" role="alert"></p>
+        </div>
+      </form>
+
+      <!-- 쿠팡 파트너스 (광고) -->
+      <aside class="promo" id="promo" aria-label="광고">
+        <button type="button" class="promo-close" id="promo-close" aria-label="광고 닫기">×</button>
+        <span class="promo-tag">광고</span>
+        <iframe class="promo-widget" src="https://coupa.ng/cqmtQT" width="100%" height="75" frameborder="0" scrolling="no" referrerpolicy="unsafe-url" title="쿠팡 검색 위젯"></iframe>
+        <a class="btn primary promo-btn" href="https://link.coupang.com/a/h4JIugLHpI" target="_blank" rel="noopener noreferrer sponsored nofollow">쿠팡 바로가기 →</a>
+        <p class="promo-note">이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+      </aside>
+    </aside>
+
+    <!-- 결과 -->
+    <section class="results" aria-live="polite">
+      <div id="empty" class="card empty" hidden>
+        <p>왼쪽 입력값의 오류를 고치면 계산 결과가 여기에 표시돼요.</p>
+      </div>
+
+      <div id="result">
+        <div class="card hero">
+          <p class="hero-label">받을 수 있는 최대 대출금</p>
+          <p class="hero-amount" id="hero-amount">-</p>
+          <p class="hero-sub" id="hero-sub"></p>
+          <ul class="hero-notes" id="hero-notes"></ul>
+          <dl class="stats">
+            <div><dt id="st-payment-label">월 납입액</dt><dd id="st-payment"></dd></div>
+            <div><dt>총 이자</dt><dd id="st-interest"></dd></div>
+            <div><dt>총 상환액</dt><dd id="st-total"></dd></div>
+            <div><dt>상환 횟수</dt><dd id="st-count"></dd></div>
+          </dl>
+          <a class="hero-link" id="open-calc" href="index.html">이 조건으로 대출 계산기에서 열기 →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>연도별 상환액</h2>
+            <p class="legend"><span><i class="dot p"></i>원금</span><span><i class="dot i"></i>이자</span></p>
+          </div>
+          <div id="chart"></div>
+        </div>
+      </div>
+
+      <!-- 상환 스케줄 (접기/펼치기) -->
+      <details class="card sched" id="schedule-card" open>
+        <summary>
+          <h2>상환 스케줄</h2>
+          <span class="legend-note" id="schedule-note"></span>
+          <span class="chev" aria-hidden="true"></span>
+        </summary>
+        <div class="table-scroll" id="schedule" tabindex="0" aria-label="회차별 상환 스케줄"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">계산 결과는 참고용이며 실제 대출 한도는 소득·담보·규제(DSR 등)에 따라 달라질 수 있어요.</footer>
+
+  <script src="js/calc.js?v=16"></script>
+  <script src="js/format.js?v=16"></script>
+  <script src="js/validate.js?v=16"></script>
+  <script src="js/inputs.js?v=16"></script>
+  <script src="js/chart.js?v=16"></script>
+  <script src="js/schedule.js?v=16"></script>
+  <script src="js/reverse.js?v=16"></script>
+</body>
+</html>

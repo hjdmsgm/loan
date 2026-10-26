@@ -10,28 +10,9 @@
   var current = null; // { input, result }
 
   /* ---------- 입력 정리 ---------- */
-  function commaInt(s) { return s.replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-  /** 백만원 단위 입력: 숫자·소수점만 남기고 정수부에 콤마를 자동으로 붙인다 (커서 위치 유지) */
-  function formatPrincipalInput(el) {
-    var sig = function (s) { return s.replace(/[^\d.]/g, ''); };
-    var before = sig(el.value.slice(0, el.selectionStart)).length;
-    var raw = sig(el.value).slice(0, 16);
-    var dot = raw.indexOf('.');
-    var intPart = (dot < 0 ? raw : raw.slice(0, dot)).replace(/^0+(?=\d)/, '');
-    var rest = dot < 0 ? '' : '.' + raw.slice(dot + 1).replace(/\./g, '');
-    var formatted = commaInt(intPart) + rest;
-    el.value = formatted;
-    var pos = 0, seen = 0;
-    while (pos < formatted.length && seen < before) { if (formatted[pos] !== ',') seen++; pos++; }
-    try { el.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
-  }
-
   /** 원 단위 금액 → 백만원 단위 입력 문자열 (437000000 → "437", 437500000 → "437.5") */
   function toInputUnits(won) {
-    var s = String(parseFloat((won / V.PRINCIPAL_UNIT).toFixed(V.LIMITS.principalDecimals)));
-    var parts = s.split('.');
-    return commaInt(parts[0]) + (parts[1] ? '.' + parts[1] : '');
+    return LoanInputs.toInputUnits(won, V.PRINCIPAL_UNIT, V.LIMITS.principalDecimals);
   }
 
   function method() { return document.querySelector('input[name="method"]:checked').value; }
@@ -266,7 +247,7 @@
   }
 
   /* ---------- 이벤트 ---------- */
-  fields.principal.addEventListener('input', function () { formatPrincipalInput(fields.principal); update(); });
+  fields.principal.addEventListener('input', function () { LoanInputs.formatDecimal(fields.principal); update(); });
   fields.rate.addEventListener('input', function () {
     var v = fields.rate.value.replace(/[^\d.\-]/g, '');
     if (v !== fields.rate.value) fields.rate.value = v;
@@ -314,7 +295,23 @@
   /* ---------- 광고 배너: 닫기는 지금 화면에서만 (새로고침하면 다시 보임) ---------- */
   $('promo-close').addEventListener('click', function () { $('promo').hidden = true; });
 
+  /* ---------- 역산 페이지에서 넘어온 조건 (#p=원금(원)&r=금리&y=년&g=거치&m=방식) ---------- */
+  function applyHash() {
+    if (!location.hash || location.hash.length < 2) return;
+    var q = new URLSearchParams(location.hash.slice(1));
+    var p = Number(q.get('p')), r = q.get('r'), y = q.get('y'), g = q.get('g') || '0', m = q.get('m');
+    if (!(p > 0) || r === null || y === null) return;
+    if (m !== Calc.METHODS.ANNUITY && m !== Calc.METHODS.EQUAL_PRINCIPAL) return;
+    fields.principal.value = toInputUnits(Math.round(p));
+    fields.rate.value = r.replace(/[^\d.]/g, '');
+    fields.years.value = y.replace(/[^\d.]/g, '');
+    fields.grace.value = g.replace(/[^\d.]/g, '');
+    document.querySelector('input[name="method"][value="' + m + '"]').checked = true;
+    history.replaceState(null, '', location.pathname + location.search); // 주소창에서 값 제거
+  }
+
   /* ---------- 시작 ---------- */
+  applyHash();
   renderConn();
   refreshList();
   update();
